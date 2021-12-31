@@ -20,6 +20,7 @@ JWT_SECRET=
 JWT_ISSUER=
 AUTH_USERNAME=
 AUTH_PASSWORD=
+PORT=5000
 ```
 
 ### Run App
@@ -27,3 +28,7 @@ AUTH_PASSWORD=
 ```
 $ go run server.go
 ```
+
+### Docs
+
+The api documentation is available at `http://localhost:5000/swagger/index.html`

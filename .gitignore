@@ -3,3 +3,5 @@ gin.log
 .env
 bin/
 DEPLOY.md
+SWAGGER.md
+ginapp.db

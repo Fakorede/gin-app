@@ -3,19 +3,24 @@ package main
 import (
 	"io"
 	"log"
-	"net/http"
 	"os"
 
 	"github.com/Fakorede/gin-app/controllers"
+	"github.com/Fakorede/gin-app/docs" // swagger generated files
 	"github.com/Fakorede/gin-app/middlewares"
 	"github.com/Fakorede/gin-app/repository"
+	"github.com/Fakorede/gin-app/router"
 	"github.com/Fakorede/gin-app/services"
 	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
+
+	swaggerFiles "github.com/swaggo/files"     // swagger embedded files
+	ginSwagger "github.com/swaggo/gin-swagger" // gin-swagger middleware
 )
 
 var (
 	videoRepository repository.VideoRepository
+
 	loginService services.LoginService
 	jwtService services.JWTService 
 	videoService services.VideoService
@@ -47,7 +52,19 @@ func setupDependencies() {
 	videoController = controllers.NewVideoController(videoService)
 }
 
+
+// @securityDefinitions.apikey bearerAuth
+// @in header
+// @name Authorization
 func main() {
+	// Swagger 2.0 Meta Information
+	docs.SwaggerInfo.Title = "Go Gin API"
+	docs.SwaggerInfo.Description = "A RESTful API built with Golang, Gin framework and Gorm"
+	docs.SwaggerInfo.Version = "1.0"
+	docs.SwaggerInfo.Host = "localhost:5000"
+	docs.SwaggerInfo.BasePath = "/api/v1"
+	docs.SwaggerInfo.Schemes = []string{"http"}
+
 	// defer videoRepository.CloseDB()
 
 	setupLogOutput()
@@ -62,77 +79,46 @@ func main() {
 
 	server.Use(gin.Recovery())
 	server.Use(middlewares.Logger())
-	server.Use(middlewares.BasicAuth())
+	// server.Use(middlewares.BasicAuth())
 	// server.Use(gindump.Dump())
 
 	routes(server)
 
 	port := os.Getenv("PORT")
 	if port == "" {
-		port = "8085"
+		port = "5000"
 	}
 
 	server.Run(":" + port)
 }
 
 func routes(server *gin.Engine) {
-	// public routes
-	server.GET("/", func (ctx *gin.Context)  {
-		ctx.JSON(200, gin.H{"message": "Hello"})
-	})
+	authAPIs := router.NewAuthAPIs(loginController)
+	videoAPIs := router.NewVideoAPIs(videoController)
 
-	server.POST("/login", func(ctx *gin.Context) {
-		token := loginController.Login(ctx)
+	server.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 
-		if token != "" {
-			ctx.JSON(http.StatusOK, gin.H{
-				"token": token,
-			})
-		} else {
-			ctx.JSON(http.StatusUnauthorized, gin.H{"message": "Invalid Credentials"})
+	apiRoutes := server.Group(docs.SwaggerInfo.BasePath)
+	{
+		login := apiRoutes.Group("/auth")
+		{
+			login.POST("/token", authAPIs.Authenticate)
 		}
-	})
+
+		videos := apiRoutes.Group("videos", middlewares.AuthorizeJWT())
+		{
+			videos.GET("", videoAPIs.GetVideos)
+		
+			videos.POST("", videoAPIs.CreateVideo)
+	
+			videos.PUT(":id", videoAPIs.UpdateVideo)
+	
+			videos.DELETE(":id", videoAPIs.DeleteVideo)
+		}
+	}
 
 	viewRoutes := server.Group("/views")
 	{
 		viewRoutes.GET("/videos", videoController.ShowAll)
-	}
-
-	// authorized routes
-	apiRoutes := server.Group("/api", middlewares.AuthorizeJWT())
-	{
-		apiRoutes.GET("/videos", func(ctx *gin.Context) {
-			ctx.JSON(http.StatusOK, videoController.FindAll())
-		})
-	
-		apiRoutes.POST("/videos", func(ctx *gin.Context) {
-			err := videoController.Save(ctx)
-			if err != nil {
-				ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-				return
-			}
-	
-			ctx.JSON(http.StatusCreated, gin.H{"message": "success"})
-		})
-
-		apiRoutes.PUT("/videos/:id", func(ctx *gin.Context) {
-			err := videoController.Update(ctx)
-			if err != nil {
-				ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-				return
-			}
-	
-			ctx.JSON(http.StatusCreated, gin.H{"message": "success"})
-		})
-
-		apiRoutes.DELETE("/videos/:id", func(ctx *gin.Context) {
-			err := videoController.Delete(ctx)
-			if err != nil {
-				ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-				return
-			}
-	
-			ctx.JSON(http.StatusCreated, gin.H{"message": "success"})
-		})
 	}
 }

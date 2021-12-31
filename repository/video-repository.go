@@ -56,9 +56,9 @@ func (db *database) FindAll() []entity.Video {
 func (db *database) CloseDB() {
 	sqlDB := db.connection
 	conn, err := sqlDB.DB()
-	defer conn.Close()
-
 	if err != nil {
 		panic("Failed to connect to db")
 	}
+
+	conn.Close()
 }
