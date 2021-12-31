@@ -22,7 +22,7 @@ type videoController struct {
 
 var validate *validator.Validate
 
-func New(service services.VideoService) VideoController {
+func NewVideoController(service services.VideoService) VideoController {
 	validate = validator.New()
 	validate.RegisterValidation("custom", validators.ValidateCustomTitle)
 

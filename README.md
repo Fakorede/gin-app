@@ -7,19 +7,17 @@ These instructions will get you a copy of the project up and running on your loc
 ### Installation
 $ git clone https://github.com/Fakorede/gin-app
 $ cd gin-app
-$ go get
+$ go mod download
+
+### Setup env variables
+Create a `.env` file in the root of the project and add the ff variables:
+
+```
+JWT_SECRET=
+JWT_ISSUER=
+AUTH_USERNAME=
+AUTH_PASSWORD=
+```
+
+### Run App
 $ go run server.go
-
-### Heroku Deployment
-
-Create a `Procfile` and add below command,
-
-```
-web: bin/golang-gin-poc
-```
-
-Run command:
-
-```
-go build -o bin/golang-gin-poc -v .
-```

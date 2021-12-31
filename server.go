@@ -2,6 +2,7 @@ package main
 
 import (
 	"io"
+	"log"
 	"net/http"
 	"os"
 
@@ -9,12 +10,16 @@ import (
 	"github.com/Fakorede/gin-app/middlewares"
 	"github.com/Fakorede/gin-app/services"
 	"github.com/gin-gonic/gin"
-	gindump "github.com/tpkeeper/gin-dump"
+	"github.com/joho/godotenv"
 )
 
 var (
-	videoService services.VideoService = services.New()
-	videoController controllers.VideoController = controllers.New(videoService)
+	loginService services.LoginService
+	jwtService services.JWTService 
+	videoService services.VideoService
+
+	loginController controllers.LoginController 
+	videoController controllers.VideoController
 )
 
 func setupLogOutput() {
@@ -22,8 +27,26 @@ func setupLogOutput() {
 	gin.DefaultWriter = io.MultiWriter(f, os.Stdout)
 }
 
+func setupDotEnv() {
+	err := godotenv.Load()
+  if err != nil {
+    log.Fatal("Error loading .env file")
+  }
+}
+
+func setupDependencies() {
+	loginService = services.NewLoginService()
+	jwtService = services.NewJWTService()
+	videoService = services.NewVideoService()
+
+	loginController = controllers.NewLoginController(loginService, jwtService)
+	videoController = controllers.NewVideoController(videoService)
+}
+
 func main() {
 	setupLogOutput()
+	setupDotEnv()
+	setupDependencies()
 
 	server := gin.New()
 
@@ -34,13 +57,43 @@ func main() {
 	server.Use(gin.Recovery())
 	server.Use(middlewares.Logger())
 	server.Use(middlewares.BasicAuth())
-	server.Use(gindump.Dump())
+	// server.Use(gindump.Dump())
 
+	routes(server)
+
+	port := os.Getenv("PORT")
+	if port == "" {
+		port = "8085"
+	}
+
+	server.Run(":" + port)
+}
+
+func routes(server *gin.Engine) {
+	// public routes
 	server.GET("/", func (ctx *gin.Context)  {
 		ctx.JSON(200, gin.H{"message": "Hello"})
 	})
 
-	apiRoutes := server.Group("/api")
+	server.POST("/login", func(ctx *gin.Context) {
+		token := loginController.Login(ctx)
+
+		if token != "" {
+			ctx.JSON(http.StatusOK, gin.H{
+				"token": token,
+			})
+		} else {
+			ctx.JSON(http.StatusUnauthorized, gin.H{"message": "Invalid Credentials"})
+		}
+	})
+
+	viewRoutes := server.Group("/views")
+	{
+		viewRoutes.GET("/videos", videoController.ShowAll)
+	}
+
+	// authorized routes
+	apiRoutes := server.Group("/api", middlewares.AuthorizeJWT())
 	{
 		apiRoutes.GET("/videos", func(ctx *gin.Context) {
 			ctx.JSON(http.StatusOK, videoController.FindAll())
@@ -56,11 +109,4 @@ func main() {
 			ctx.JSON(http.StatusCreated, gin.H{"message": "success"})
 		})
 	}
-
-	viewRoutes := server.Group("/views")
-	{
-		viewRoutes.GET("/videos", videoController.ShowAll)
-	}
-
-	server.Run(":8085")
 }
