@@ -282,16 +282,9 @@ var doc = `{
         },
         "entity.Person": {
             "type": "object",
-            "required": [
-                "email",
-                "firstname",
-                "lastname"
-            ],
             "properties": {
                 "age": {
-                    "type": "integer",
-                    "maximum": 130,
-                    "minimum": 1
+                    "type": "integer"
                 },
                 "email": {
                     "type": "string"
@@ -310,12 +303,18 @@ var doc = `{
         "entity.Video": {
             "type": "object",
             "required": [
-                "author",
+                "author_id",
                 "url"
             ],
             "properties": {
                 "author": {
                     "$ref": "#/definitions/entity.Person"
+                },
+                "author_id": {
+                    "type": "integer"
+                },
+                "created_at": {
+                    "type": "string"
                 },
                 "description": {
                     "type": "string",
@@ -328,6 +327,9 @@ var doc = `{
                     "type": "string",
                     "maxLength": 100,
                     "minLength": 2
+                },
+                "updated_at": {
+                    "type": "string"
                 },
                 "url": {
                     "type": "string"

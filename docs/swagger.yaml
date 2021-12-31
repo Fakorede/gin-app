@@ -12,8 +12,6 @@ definitions:
   entity.Person:
     properties:
       age:
-        maximum: 130
-        minimum: 1
         type: integer
       email:
         type: string
@@ -23,15 +21,15 @@ definitions:
         type: integer
       lastname:
         type: string
-    required:
-    - email
-    - firstname
-    - lastname
     type: object
   entity.Video:
     properties:
       author:
         $ref: '#/definitions/entity.Person'
+      author_id:
+        type: integer
+      created_at:
+        type: string
       description:
         maxLength: 200
         type: string
@@ -41,10 +39,12 @@ definitions:
         maxLength: 100
         minLength: 2
         type: string
+      updated_at:
+        type: string
       url:
         type: string
     required:
-    - author
+    - author_id
     - url
     type: object
 info:
