@@ -7,14 +7,14 @@ import (
 )
 
 type LoginService interface {
-	Login (username, password string) bool
+	Login(username, password string) bool
 }
 
 type loginService struct {
 	authorizedUsername, authorizedPassword string
 }
 
-func NewLoginService () LoginService {
+func NewLoginService() LoginService {
 	credentials := getAuthorized()
 	log.Println("credentials: " + fmt.Sprint(credentials))
 

@@ -27,11 +27,11 @@ func (s *videoService) Save(video entity.Video) entity.Video {
 	return video
 }
 
-func (s *videoService) Update(video entity.Video){
+func (s *videoService) Update(video entity.Video) {
 	s.videoRepository.Update(video)
 }
 
-func (s *videoService) Delete(video entity.Video){
+func (s *videoService) Delete(video entity.Video) {
 	s.videoRepository.Delete(video)
 }
 

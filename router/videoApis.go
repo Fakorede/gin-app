@@ -109,4 +109,3 @@ func (api *VideoApis) DeleteVideo(ctx *gin.Context) {
 		})
 	}
 }
-

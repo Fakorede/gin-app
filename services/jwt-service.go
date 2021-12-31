@@ -10,26 +10,26 @@ import (
 )
 
 type JWTService interface {
-	GenerateToken (name string, admin bool) string
-	ValidateToken (token string) (*jwt.Token, error)
+	GenerateToken(name string, admin bool) string
+	ValidateToken(token string) (*jwt.Token, error)
 }
 
 // jwtCustomClaims are custom claims extending default ones
 type jwtCustomClaims struct {
-	Name string `json:"name"`
-	Admin bool `json:"admin"`
+	Name  string `json:"name"`
+	Admin bool   `json:"admin"`
 	jwt.StandardClaims
 }
 
 type jwtService struct {
 	secretKey string
-	issuer string
+	issuer    string
 }
 
 func NewJWTService() JWTService {
-	return &jwtService {
+	return &jwtService{
 		secretKey: getSecretKey(),
-		issuer: getIssuer(),
+		issuer:    getIssuer(),
 	}
 }
 
@@ -48,18 +48,18 @@ func getSecretKey() string {
 		log.Fatal("JWT_SECRET variable not setup in .env")
 	}
 
-	return secret 
+	return secret
 }
 
-func (jwtSrv *jwtService) GenerateToken (username string, admin bool) string {
+func (jwtSrv *jwtService) GenerateToken(username string, admin bool) string {
 	// set custom and standard claims
 	claims := &jwtCustomClaims{
 		username,
 		admin,
 		jwt.StandardClaims{
 			ExpiresAt: time.Now().Add(time.Hour * 1).Unix(),
-			Issuer: jwtSrv.issuer,
-			IssuedAt: time.Now().Unix(),
+			Issuer:    jwtSrv.issuer,
+			IssuedAt:  time.Now().Unix(),
 		},
 	}
 
@@ -75,7 +75,7 @@ func (jwtSrv *jwtService) GenerateToken (username string, admin bool) string {
 	return t
 }
 
-func (jwtSrv *jwtService)	ValidateToken (tokenString string) (*jwt.Token, error) {
+func (jwtSrv *jwtService) ValidateToken(tokenString string) (*jwt.Token, error) {
 	return jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
 		// signing method validation
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {

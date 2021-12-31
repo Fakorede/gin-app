@@ -38,7 +38,7 @@ func (c *videoController) FindAll() []entity.Video {
 	return c.service.FindAll()
 }
 
-func (c *videoController)	Save(ctx *gin.Context) error {
+func (c *videoController) Save(ctx *gin.Context) error {
 	var video entity.Video
 	err := ctx.ShouldBindJSON(&video)
 	if err != nil {
@@ -94,7 +94,7 @@ func (c *videoController) Delete(ctx *gin.Context) error {
 func (c *videoController) ShowAll(ctx *gin.Context) {
 	videos := c.service.FindAll()
 	data := gin.H{
-		"title": "All Videos",
+		"title":  "All Videos",
 		"videos": videos,
 	}
 

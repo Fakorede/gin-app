@@ -1,12 +1,16 @@
 package repository
 
 import (
+	"fmt"
+	"log"
+	"os"
+
 	"github.com/Fakorede/gin-app/entity"
-	"gorm.io/driver/sqlite"
+	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
 )
 
-type VideoRepository interface{
+type VideoRepository interface {
 	Save(video entity.Video)
 	Update(video entity.Video)
 	Delete(video entity.Video)
@@ -14,12 +18,24 @@ type VideoRepository interface{
 	CloseDB()
 }
 
-type database struct{
+type database struct {
 	connection *gorm.DB
 }
 
 func NewVideoRepository() VideoRepository {
-	db, err := gorm.Open(sqlite.Open("ginapp.db"), &gorm.Config{})
+	db_host := os.Getenv("DB_HOST")
+	db_port := os.Getenv("DB_PORT")
+	db_user := os.Getenv("DB_USER")
+	db_pass := os.Getenv("DB_PASS")
+	db_database := os.Getenv("DB_DATABASE")
+
+	if db_host == "" || db_port == "" || db_database == "" || db_user == "" || db_pass == "" {
+		log.Fatal("Database connection variables required in .env")
+	}
+
+	dsn := db_user + ":" + db_pass + "@tcp(" + db_host + ":" + db_port + ")/" + db_database + "?charset=utf8mb4&parseTime=True&loc=Local"
+
+	db, err := gorm.Open(mysql.Open(dsn), &gorm.Config{})
 	if err != nil {
 		panic("Failed to connect to db")
 	}
@@ -29,11 +45,13 @@ func NewVideoRepository() VideoRepository {
 		&entity.Person{},
 	)
 
+	exists := db.Migrator().HasTable(&entity.Person{})
+	log.Println(fmt.Sprint(exists) + " => it does or not")
+
 	return &database{
 		connection: db,
 	}
 }
-
 
 func (db *database) Save(video entity.Video) {
 	db.connection.Create(&video)
@@ -49,7 +67,7 @@ func (db *database) Delete(video entity.Video) {
 
 func (db *database) FindAll() []entity.Video {
 	var videos []entity.Video
-	db.connection.Set("gorm:auto_preload", true).Find(&videos)
+	db.connection.Preload("Author").Find(&videos)
 	return videos
 }
 

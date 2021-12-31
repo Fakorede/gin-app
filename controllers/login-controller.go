@@ -6,23 +6,23 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-type LoginController interface{
-	Login (ctx *gin.Context) string
+type LoginController interface {
+	Login(ctx *gin.Context) string
 }
 
-type loginController struct{
+type loginController struct {
 	loginService services.LoginService
-	jwtService services.JWTService
+	jwtService   services.JWTService
 }
 
-func NewLoginController (loginService services.LoginService, jwtService services.JWTService) LoginController {
-	return &loginController {
+func NewLoginController(loginService services.LoginService, jwtService services.JWTService) LoginController {
+	return &loginController{
 		loginService: loginService,
-		jwtService: jwtService,
+		jwtService:   jwtService,
 	}
 }
 
-func (c *loginController) Login (ctx *gin.Context) string {
+func (c *loginController) Login(ctx *gin.Context) string {
 	var credentials dto.Credentials
 	err := ctx.ShouldBind(&credentials)
 	if err != nil {

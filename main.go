@@ -22,10 +22,10 @@ var (
 	videoRepository repository.VideoRepository
 
 	loginService services.LoginService
-	jwtService services.JWTService 
+	jwtService   services.JWTService
 	videoService services.VideoService
 
-	loginController controllers.LoginController 
+	loginController controllers.LoginController
 	videoController controllers.VideoController
 )
 
@@ -36,9 +36,9 @@ func setupLogOutput() {
 
 func setupDotEnv() {
 	err := godotenv.Load()
-  if err != nil {
-    log.Fatal("Error loading .env file")
-  }
+	if err != nil {
+		log.Fatal("Error loading .env file")
+	}
 }
 
 func setupDependencies() {
@@ -51,7 +51,6 @@ func setupDependencies() {
 	loginController = controllers.NewLoginController(loginService, jwtService)
 	videoController = controllers.NewVideoController(videoService)
 }
-
 
 // @securityDefinitions.apikey bearerAuth
 // @in header
@@ -108,11 +107,11 @@ func routes(server *gin.Engine) {
 		videos := apiRoutes.Group("videos", middlewares.AuthorizeJWT())
 		{
 			videos.GET("", videoAPIs.GetVideos)
-		
+
 			videos.POST("", videoAPIs.CreateVideo)
-	
+
 			videos.PUT(":id", videoAPIs.UpdateVideo)
-	
+
 			videos.DELETE(":id", videoAPIs.DeleteVideo)
 		}
 	}
