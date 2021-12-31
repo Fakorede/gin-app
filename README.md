@@ -16,10 +16,18 @@ $ go mod download
 Create a `.env` file in the root of the project and add the ff variables:
 
 ```
+DB_HOST=127.0.0.1
+DB_PORT=3306
+DB_DATABASE=gin_app
+DB_USER=
+DB_PASS=
+
 JWT_SECRET=
 JWT_ISSUER=
+
 AUTH_USERNAME=
 AUTH_PASSWORD=
+
 PORT=5000
 ```
 
